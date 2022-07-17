@@ -6,18 +6,22 @@ const { developmentChains } = require("../../helper.config")
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("Fund Me ", function () {
-          let lottery, deployer, player, vrfCoordinatorV2Mock, interval
+          let lottery, deployer, player, vrfCoordinatorV2Mock, interval, lotteryContract, accounts
           let sendEther = ethers.utils.parseEther("1")
           beforeEach(async function () {
               // deploy the contract on hard hardhat-deploy we will used
               // deployments -> it will run all the deployment script with tag
+              accounts = await ethers.getSigners() // could also do with getNamedAccounts
+
               deployer = (await getNamedAccounts()).deployer
               player = (await getNamedAccounts()).player
 
               await deployments.fixture("all") // it will run all the deployment file tag == > all
-              lottery = await ethers.getContract("Lottery", deployer)
+              lotteryContract = await ethers.getContract("Lottery") // Returns a new connection to the Raffle contract
+              lottery = lotteryContract.connect(player) // Ret
               vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock", deployer)
               interval = await lottery.getInterval()
+              sendEther = await lottery.getEntranceFee()
           })
           describe("Constractor ", function () {
               it("Should return the vrfCoordinatorV2Mock similer which is return ", async function () {
@@ -73,75 +77,124 @@ const { developmentChains } = require("../../helper.config")
               })
           })
 
-          //   describe("WithDraw Fund ", function () {
-          //       beforeEach(async function () {
-          //           // before starting testing we need to fund the contract
-          //           await lottery.fund({ value: sendEther })
-          //       })
-          //       it("withDraw ether from single funder", async function () {
-          //           // this is more helpful when you want to want code check without break
-          //           var startFundBalance = await lottery.provider.getBalance(lottery.address)
-          //           var startDeployerBalance = await lottery.provider.getBalance(deployer)
-          //           console.log(startFundBalance.toString(), startDeployerBalance.toString())
-          //           var transactionResponse = await lottery.withdraw()
-          //           var transactionRecepit = await transactionResponse.wait(0)
-          //           var { gasUsed, effectiveGasPrice } = transactionRecepit
-          //           var gasCost = gasUsed.mul(effectiveGasPrice)
-          //           console.log("gasCost", gasCost.toString())
+          describe("checkUpkeep ", function () {
+              it("check checkUpkeep it fail on if their is no players", async function () {
+                  network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+                  network.provider.send("evm_mine", [])
+                  var { upkeepNeeded } = await lottery.callStatic.checkUpkeep([])
+                  console.log(upkeepNeeded)
+                  assert(!upkeepNeeded)
+              })
+              it("check checkUpkeep it fail on if is lottery is close", async function () {
+                  sendEther = await lottery.getEntranceFee()
+                  await expect(lottery.enternaceLottery({ value: sendEther })).to.emit(
+                      lottery,
+                      "LotteryEnter"
+                  )
+                  network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+                  network.provider.send("evm_mine", [])
+                  await lottery.performUpkeep([])
+                  var { upkeepNeeded } = await lottery.callStatic.checkUpkeep([])
+                  var res = await lottery.getRaffleState()
+                  assert.equal("1", res.toString())
 
-          //           var endingFundBalance = await lottery.provider.getBalance(lottery.address)
-          //           var endingDeployerBalance = await lottery.provider.getBalance(deployer)
-          //           console.log("endingDeployerBalance", endingDeployerBalance.toString())
+                  assert(!upkeepNeeded)
+              })
 
-          //           assert.equal(endingFundBalance, 0)
-          //           assert.equal(
-          //               startDeployerBalance.add(startFundBalance).toString(),
-          //               endingDeployerBalance.add(gasCost).toString()
-          //           )
-          //       })
-          //       it("is allows us to withdraw with multiple funders", async () => {
-          //           // Arrange
-          //           const accounts = await ethers.getSigners()
-          //           for (i = 1; i < 6; i++) {
-          //               const fundMeConnectedContract = await lottery.connect(accounts[i])
-          //               await fundMeConnectedContract.fund({ value: sendEther })
-          //           }
-          //           const startingFundMeBalance = await lottery.provider.getBalance(lottery.address)
-          //           const startingDeployerBalance = await lottery.provider.getBalance(deployer)
+              it("returns false if enough time hasn't passed", async () => {
+                  await lottery.enternaceLottery({ value: sendEther })
+                  await network.provider.send("evm_increaseTime", [interval.toNumber() - 1])
+                  await network.provider.request({ method: "evm_mine", params: [] })
+                  const { upkeepNeeded } = await lottery.callStatic.checkUpkeep("0x") // upkeepNeeded = (timePassed && isOpen && hasBalance && hasPlayers)
+                  assert(!upkeepNeeded)
+              })
+              it("returns true if enough time has passed, has players, eth, and is open", async () => {
+                  await lottery.enternaceLottery({ value: sendEther })
+                  await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+                  await network.provider.request({ method: "evm_mine", params: [] })
+                  const { upkeepNeeded } = await lottery.callStatic.checkUpkeep("0x") // upkeepNeeded = (timePassed && isOpen && hasBalance && hasPlayers)
+                  assert(upkeepNeeded)
+              })
+          })
+          describe("performUpkeep ", function () {
+              it("it work only if checkUpkeep is true", async function () {
+                  await expect(lottery.enternaceLottery({ value: sendEther })).to.emit(
+                      lottery,
+                      "LotteryEnter"
+                  )
+                  network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+                  network.provider.send("evm_mine", [])
+                  var tx = await lottery.performUpkeep([])
+                  assert(tx)
+              })
+              it("reverts if checkup is false", async () => {
+                  await expect(lottery.performUpkeep("0x")).to.be.revertedWith(
+                      "Lottery__UpKeepNotNeeded"
+                  )
+              })
+              it("updates the lottery state and emits a requestId", async () => {
+                  // Too many asserts in this test!
+                  await lottery.enternaceLottery({ value: sendEther })
+                  await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+                  await network.provider.request({ method: "evm_mine", params: [] })
+                  const txResponse = await lottery.performUpkeep("0x") // emits requestId
+                  const txReceipt = await txResponse.wait(1) // waits 1 block
+                  const raffleState = await lottery.getRaffleState() // updates state
+                  const requestId = txReceipt.events[1].args.requidID
+                  console.log("requestId", requestId)
+                  assert(requestId.toNumber() > 0)
+                  assert(raffleState == 1) // 0 = open, 1 = calculating
+              })
+              it("picks a winner, resets, and sends money", async () => {
+                  const additionalEntrances = 3 // to test
+                  const startingIndex = 2
+                  for (let i = startingIndex; i < startingIndex + additionalEntrances; i++) {
+                      // i = 2; i < 5; i=i+1
+                      lottery = lotteryContract.connect(accounts[i]) // Returns a new instance of the Raffle contract connected to player
+                      await lottery.enternaceLottery({ value: sendEther })
+                  }
+                  const startingTimeStamp = await lottery.getLastTimeStamp() // stores starting timestamp (before we fire our event)
 
-          //           // Act
-          //           const transactionResponse = await lottery.cheaperWithdraw()
-          //           // Let's comapre gas costs :)
-          //           // const transactionResponse = await lottery.withdraw()
-          //           const transactionReceipt = await transactionResponse.wait()
-          //           const { gasUsed, effectiveGasPrice } = transactionReceipt
-          //           const withdrawGasCost = gasUsed.mul(effectiveGasPrice)
-          //           console.log(`GasCost: ${withdrawGasCost}`)
-          //           console.log(`GasUsed: ${gasUsed}`)
-          //           console.log(`GasPrice: ${effectiveGasPrice}`)
-          //           const endingFundMeBalance = await lottery.provider.getBalance(lottery.address)
-          //           const endingDeployerBalance = await lottery.provider.getBalance(deployer)
-          //           // Assert
-          //           assert.equal(
-          //               startingFundMeBalance.add(startingDeployerBalance).toString(),
-          //               endingDeployerBalance.add(withdrawGasCost).toString()
-          //           )
-          //           // Make a getter for storage variables
-          //           await expect(lottery.getFunder(0)).to.be.reverted
+                  // This will be more important for our staging tests...
+                  await new Promise(async (resolve, reject) => {
+                      lottery.once("WinnerPicked", async () => {
+                          // event listener for WinnerPicked
+                          console.log("WinnerPicked event fired!")
+                          // assert throws an error if it fails, so we need to wrap
+                          // it in a try/catch so that the promise returns event
+                          // if it fails.
+                          try {
+                              // Now lets get the ending values...
+                              const recentWinner = await lottery.getRecentWinner()
+                              const raffleState = await lottery.getRaffleState()
+                              const winnerBalance = await accounts[2].getBalance()
+                              const endingTimeStamp = await lottery.getLastTimeStamp()
+                              await expect(lottery.getPlayer(0)).to.be.reverted
+                              // Comparisons to check if our ending values are correct:
+                              assert.equal(recentWinner.toString(), accounts[2].address)
+                              assert.equal(raffleState, 0)
+                              assert.equal(
+                                  winnerBalance.toString(),
+                                  startingBalance // startingBalance + ( (sendEther * additionalEntrances) + raffleEntranceFee )
+                                      .add(sendEther.mul().add(sendEther))
+                                      .toString()
+                              )
+                              //   assert(endingTimeStamp > startingTimeStamp)
+                              resolve() // if try passes, resolves the promise
+                          } catch (e) {
+                              reject(e) // if try fails, rejects the promise
+                          }
+                      })
 
-          //           for (i = 1; i < 6; i++) {
-          //               assert.equal(await lottery.getAddressToAmountFunded(accounts[i].address), 0)
-          //           }
-          //       })
-          //       it("Only allows the owner to withdraw", async function () {
-          //           const accounts = await ethers.getSigners()
-          //           const fundMeConnectedContract = await lottery.connect(accounts[1])
-          //           //   await expect(fundMeConnectedContract.withdraw()).to.be.revertedWith(
-          //           //     "FundMe__NotOwner"
-          //           //   );
-          //           await expect(fundMeConnectedContract.withdraw()).to.be.revertedWith(
-          //               "FundMe__NotOwner"
-          //           )
-          //       })
-          //   })
+                      const tx = await lottery.performUpkeep("0x")
+                      const txReceipt = await tx.wait(1)
+                      const startingBalance = await accounts[2].getBalance()
+                      console.log("startingBalance", startingBalance)
+                      await vrfCoordinatorV2Mock.fulfillRandomWords(
+                          txReceipt.events[1].args.requestId,
+                          lottery.address
+                      )
+                  })
+              })
+          })
       })

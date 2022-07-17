@@ -45,3 +45,16 @@ it will help us to implement orical which help as to get data from real work lik
 
 it will help as to change blockchain setting and like blocktime, mine new block so much more
 https://hardhat.org/hardhat-network/docs/reference
+
+This to line make changes in hardhat local node first we edit time and increace with some limit and new block for reflect changes
+
+```
+                  network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
+                  network.provider.send("evm_mine", [])
+```
+
+if we just want to simulate the transaction instated of doing transactions we used "callStatic"
+
+```
+                  var { upkeepNeeded } = await lottery.callStatic.checkUpkeep([])
+```
