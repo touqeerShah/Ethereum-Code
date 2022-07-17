@@ -26,8 +26,8 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
     }
 
     // State variables
-    uint256 private immutable i_entrnaceFee; //i_ denote immutable varable which mean it will be write only once
-    address payable[] private s_player;
+    uint256 private immutable i_entranceFee; //i_ denote immutable varable which mean it will be write only once
+    address payable[] private s_players;
     uint64 private immutable i_subscriptionId;
     bytes32 private immutable i_gasLine;
     uint32 private immutable i_callbackGasLimit;
@@ -41,8 +41,6 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
     uint256 private immutable i_interval;
     uint256 private s_lastTimeStamp;
     address private s_recentWinner;
-    uint256 private i_entranceFee;
-    address payable[] private s_players;
 
     LotteryState private s_lotteryState;
     // Events
@@ -58,7 +56,7 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
         uint32 callbackGasLimit,
         uint256 interval
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
-        i_entrnaceFee = entrnaceFee;
+        i_entranceFee = entrnaceFee;
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
         i_subscriptionId = subscriptionId;
         i_gasLine = gasLine;
@@ -69,14 +67,14 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
     }
 
     function enternaceLottery() public payable {
-        if (msg.value < i_entrnaceFee) {
+        if (msg.value < i_entranceFee) {
             revert Lottery__NOTEnougthETHEnter();
         }
         if (s_lotteryState != LotteryState.OPEN) {
             revert Lottery__NOTOPEN();
         }
 
-        s_player.push(payable(msg.sender));
+        s_players.push(payable(msg.sender));
         emit LotteryEnter(msg.sender);
     }
 
@@ -97,20 +95,6 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
         }
         emit WinnerPicked(recentWinner);
     }
-
-    // function requestRandomWords() external onlyOwner {
-    //     // Will revert if subscription is not set and funded.
-    //     s_lotteryState = LotteryState.CALCULATE;
-
-    //     uint256 requestID = i_vrfCoordinator.requestRandomWords(
-    //         i_gasLine,
-    //         s_subscriptionId,
-    //         REQUEST_CONFORMATIONS,
-    //         i_callbackGasLimit,
-    //         NUM_WORDS
-    //     );
-    //     emit RequestForRandomNumber(requestID);
-    // }
 
     function checkUpkeep(
         bytes memory /* checkData */

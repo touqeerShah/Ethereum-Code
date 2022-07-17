@@ -40,3 +40,8 @@ it will help us to implement orical which help as to get data from real work lik
 -   we need to link our account to chainlink
 -   subscribe the chainlink contract
 -   tell which contract is going to used our this subcribations
+
+# hardhat network
+
+it will help as to change blockchain setting and like blocktime, mine new block so much more
+https://hardhat.org/hardhat-network/docs/reference

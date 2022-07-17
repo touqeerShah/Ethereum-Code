@@ -2,6 +2,7 @@ let { networkConfig, developmentChains } = require("../helper.config.js")
 let { verify } = require("../utils/verify")
 
 require("dotenv").config()
+const FUND_AMOUNT = "1000000000000000000000"
 
 module.exports = async ({ getNamedAccounts, deployments, getChainId, network }) => {
     const { deploy, log, get } = deployments
@@ -10,33 +11,58 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId, network }) 
 
     log("--------------------------------")
 
-    var vrfCoordinatorV2MockAddress
+    var vrfCoordinatorV2MockAddress, subscriptionId
 
     if (chainId == 4) {
         console.log(
             "networkConfig[chainId].etherUSDPriceFeed;",
             networkConfig[chainId].etherUSDPriceFeed
         )
-        vrfCoordinatorV2MockAddress = networkConfig[chainId].etherUSDPriceFeed
+        vrfCoordinatorV2MockAddress = networkConfig[chainId].VRFCoordinatorV2Mock
+        subscriptionId = networkConfig[chainId].subscriptionId
     } else {
-        const VRFCoordinatorV2Mock = await get("VRFCoordinatorV2Mock")
-        log(
-            `Your contract is deployed on local network to ${VRFCoordinatorV2Mock.address} ${chainId}`
-        )
-        vrfCoordinatorV2MockAddress = VRFCoordinatorV2Mock.address
+        const vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
+        vrfCoordinatorV2MockAddress = vrfCoordinatorV2Mock.address
+        console.log("vrfCoordinatorV2MockAddress==>", vrfCoordinatorV2MockAddress)
+        const transactionResponse = await vrfCoordinatorV2Mock.createSubscription()
+        const transactionReceipt = await transactionResponse.wait()
+        subscriptionId = transactionReceipt.events[0].args.subId
+        // Fund the subscription
+        // Our mock makes it so we don't actually have to worry about sending fund
+        await vrfCoordinatorV2Mock.fundSubscription(subscriptionId, FUND_AMOUNT)
     }
     log("Network is detected to be mock")
     console.log("vrfCoordinatorV2MockAddress", vrfCoordinatorV2MockAddress)
-    const funMe = await deploy("FundMe", {
+    console.log("subscriptionId", subscriptionId.toString())
+    var entrnaceFee = networkConfig[chainId].entrnaceFee
+    var KeyHash = networkConfig[chainId].KeyHash
+    var callbackGasLimit = networkConfig[chainId].callbackGasLimit
+    var interval = networkConfig[chainId].interval
+    console.log("entrnaceFee ====>", entrnaceFee.toString())
+    const lottery = await deploy("Lottery", {
         from: deployer,
-        args: [vrfCoordinatorV2MockAddress],
+        args: [
+            vrfCoordinatorV2MockAddress,
+            entrnaceFee,
+            subscriptionId,
+            KeyHash,
+            callbackGasLimit,
+            interval,
+        ],
         log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
-    log(`funMe contract is deployed on local network to ${funMe.address} ${chainId}`)
+    log(`lottery contract is deployed on local network to ${lottery.address} ${chainId}`)
 
     if (!developmentChains.includes(network.name) && process.env.ETHERSCANAPIKEY) {
-        await verify(funMe.address, [vrfCoordinatorV2MockAddress])
+        await verify(lottery.address, [
+            vrfCoordinatorV2MockAddress,
+            entrnaceFee,
+            subscriptionId,
+            KeyHash,
+            callbackGasLimit,
+            interval,
+        ])
     }
 }
 module.exports.tags = ["fund", "all"]

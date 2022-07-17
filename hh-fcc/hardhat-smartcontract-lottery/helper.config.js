@@ -1,8 +1,12 @@
+const { ethers } = require("hardhat")
+
 const networkConfig = {
     31337: {
         name: "localhost",
-        KeyHash: "0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311",
-        Fee: "100000000000000000",
+        KeyHash: "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc",
+        entrnaceFee: ethers.utils.parseEther("0.01"),
+        callbackGasLimit: "50000",
+        interval: "30",
     },
     3: {
         name: "ropsten",
@@ -12,7 +16,10 @@ const networkConfig = {
         LINKAddress: "0x01BE23585060835E02B77ef475b0Cc51aA1e0709",
         VRFCoordinatorV2Mock: "0x6168499c0cFfCaCD319c818142124B7A15E857ab",
         KeyHash: "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc",
-        Fee: "100000000000000000",
+        entrnaceFee: ethers.utils.parseEther("0.01"),
+        subscriptionId: "8365",
+        callbackGasLimit: "50000",
+        interval: "30",
     },
 }
 const developmentChains = ["hardhat", "localhost"]
