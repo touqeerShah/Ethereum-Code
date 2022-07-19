@@ -21,7 +21,7 @@ error PTNFT__ONLYMARKETPLACE();
  * @notice This contract is for creating a Lazy NFT
  * @dev Create MarketPlace for PhramaTrace
  */
-contract PTNFT is ERC721URIStorage, EIP712, AccessControl {
+contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
     // State variables
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -115,6 +115,28 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl {
     function _verify(NFTVoucher calldata voucher) public view onlyMarketPlace returns (address) {
         bytes32 digest = _hash(voucher);
         return ECDSA.recover(digest, voucher.signature);
+    }
+
+    function getApprovedOrOwner(address spender, uint256 tokenId) public view returns (bool) {
+        return _isApprovedOrOwner(spender, tokenId);
+    }
+
+    /// @notice used to revert the approved on delete.
+
+    function revertApprovalForAll(address operator, uint256 tokenId) public nonReentrant {
+        _approve(operator, tokenId);
+    }
+
+    function _isApprovedOrOwner(address spender, uint256 tokenId)
+        internal
+        view
+        override
+        returns (bool)
+    {
+        address owner = ERC721.ownerOf(tokenId);
+        return (spender == owner ||
+            isApprovedForAll(owner, spender) ||
+            getApproved(tokenId) == spender);
     }
 
     function supportsInterface(bytes4 interfaceId)

@@ -1,6 +1,6 @@
 const { expect, assert } = require("chai")
 const { network, deployments, ethers, getNamedAccounts } = require("hardhat")
-const { PTMinter } = require("../../lib/")
+const { PTMinter } = require("../../lib")
 
 const { developmentChains } = require("../../helper.config")
 
@@ -52,9 +52,11 @@ const { developmentChains } = require("../../helper.config")
                   console.log("voucher", voucher)
                   //   var res = await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1)
                   //   console.log(res)
-                  await expect(PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1), {
-                      value: sendEther,
-                  }).to.be.revertedWith("PTNFTMarketPlace__InsufficientFund")
+                  await expect(
+                      PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
+                          value: sendEther,
+                      })
+                  ).to.be.revertedWith("PTNFTMarketPlace__InsufficientFund")
               })
               it("check createOfferFoRLazzNFT with minPrice", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
@@ -585,13 +587,11 @@ const { developmentChains } = require("../../helper.config")
                   PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(redeemer)
                   //   var res = await PTNFTMarketPlace.getSign(voucher)
                   //   console.log(res)
-                  await expect(
-                      PTNFTMarketPlace.rejectionProcess(voucher, {
-                          value: sendEther,
-                      })
-                  ).to.be.revertedWith("PTNFTMarketPlace__OnlyOwnerAcceptOffer")
+                  await expect(PTNFTMarketPlace.rejectLazzNFTOffer(voucher)).to.be.revertedWith(
+                      "PTNFTMarketPlace__OnlyOwnerAcceptOffer"
+                  )
               })
-              it("check acceptLazzNFTOffer fail when try to accept offer after expire", async function () {
+              it("check rejectionProcess fail when try to accept offer after expire", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
                   console.log("minter", minter.address)
                   let sendEther = ethers.utils.parseEther("0.2")
@@ -612,13 +612,11 @@ const { developmentChains } = require("../../helper.config")
                   //   console.log(res)
                   network.provider.send("evm_increaseTime", [86400 * 1])
                   network.provider.send("evm_mine", [])
-                  await expect(
-                      PTNFTMarketPlace.acceptLazzNFTOffer(voucher, {
-                          value: sendEther,
-                      })
-                  ).to.be.revertedWith("PTNFTMarketPlace__OfferTimeExpired")
+                  await expect(PTNFTMarketPlace.rejectLazzNFTOffer(voucher)).to.be.revertedWith(
+                      "PTNFTMarketPlace__OfferTimeExpired"
+                  )
               })
-              it("check acceptLazzNFTOffer redeem NFT voucher", async function () {
+              it("check rejectLazzNFTOffer redeem NFT voucher", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
                   console.log("minter", minter.address)
                   let sendEther = ethers.utils.parseEther("0.2")
@@ -636,15 +634,18 @@ const { developmentChains } = require("../../helper.config")
                       value: sendEther,
                   })
 
-                  await expect(PTNFTMarketPlace.acceptLazzNFTOffer(voucher)).to.emit(
+                  await expect(PTNFTMarketPlace.rejectLazzNFTOffer(voucher)).to.emit(
                       PTNFTMarketPlace,
-                      "AcceptOffer"
+                      "RejectOffer"
                   ) // transfer from null address to minter
               })
-              it("check acceptLazzNFTOffer redeem NFT voucher is transfer and verify URI", async function () {
+          })
+
+          describe("PTNFTMarketPlace withDrawFromOffer ", function () {
+              it("check withDrawFromOffer fail when try to get amount without place any offer", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
                   console.log("minter", minter.address)
-                  let sendEther = ethers.utils.parseEther("0.5")
+                  let sendEther = ethers.utils.parseEther("0.2")
                   let minPrice = ethers.utils.parseEther("0.1")
                   let maxPrice = ethers.utils.parseEther("0.5")
 
@@ -654,29 +655,21 @@ const { developmentChains } = require("../../helper.config")
                       maxPrice,
                       minPrice
                   )
-
-                  var res = await ptNFT.balanceOf(redeemer.address)
-                  console.log("res", res.toString())
-                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(redeemer)
-
+                  console.log("voucher", redeemer.address)
                   await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
                       value: sendEther,
                   })
-                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(minter)
-
-                  var txResponse = await PTNFTMarketPlace.acceptLazzNFTOffer(voucher)
-
-                  var txReceipt = await txResponse.wait(1) // waits 1 block
-                  var res = await ptNFT.balanceOf(redeemer.address)
-                  var resURI = await ptNFT.tokenURI(1)
-                  console.log("res", res.toString(), resURI.toString())
-                  assert.equal(res.toString(), "1")
-                  assert.equal(resURI.toString(), voucher.uri.toString())
+                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(redeemer)
+                  //   var res = await PTNFTMarketPlace.getSign(voucher)
+                  //   console.log(res)
+                  await expect(PTNFTMarketPlace.withDrawFromOffer(1)).to.be.revertedWith(
+                      "PTNFTMarketPlace__FirstPlaceOffer"
+                  )
               })
-              it("check acceptLazzNFTOffer redeem NFT voucher Offer will Close", async function () {
+              it("check withDrawFromOffer amount is return in account", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
                   console.log("minter", minter.address)
-                  let sendEther = ethers.utils.parseEther("0.5")
+                  let sendEther = ethers.utils.parseEther("0.2")
                   let minPrice = ethers.utils.parseEther("0.1")
                   let maxPrice = ethers.utils.parseEther("0.5")
 
@@ -686,76 +679,144 @@ const { developmentChains } = require("../../helper.config")
                       maxPrice,
                       minPrice
                   )
+                  const startingBalance = await PTNFTMarketPlace.provider.getBalance(minter.address)
+                  var txResponse = await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
+                      value: sendEther,
+                  })
+                  var txReceipt = await txResponse.wait(1) // waits 1 block
+                  var { gasUsed, effectiveGasPrice } = txReceipt
+                  let withdrawGasCostCreateOfferFoRLazzNFT = gasUsed.mul(effectiveGasPrice)
 
-                  var res = await ptNFT.balanceOf(redeemer.address)
-                  console.log("res", res.toString())
-                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(redeemer)
+                  var txResponse1 = await PTNFTMarketPlace.withDrawFromOffer(1)
+                  var txReceipt1 = await txResponse1.wait(1) // waits 1 block
+                  var gasUsed1 = txReceipt1.gasUsed
+                  var effectiveGasPrice1 = txReceipt1.effectiveGasPrice
+                  let withdrawGasCostwithDrawFromOffer = gasUsed1.mul(effectiveGasPrice1)
 
+                  var endingBalance = await PTNFTMarketPlace.provider.getBalance(minter.address)
+                  endingBalance = endingBalance
+                      .add(withdrawGasCostwithDrawFromOffer)
+                      .add(withdrawGasCostCreateOfferFoRLazzNFT)
+                  console.log("endingBalance", endingBalance.toString())
+                  console.log("startingBalance", startingBalance.toString())
+                  assert.equal(endingBalance.toString(), startingBalance.toString())
+              })
+              it("check WithDrawFund event ", async function () {
+                  const ptMinter = new PTMinter({ ptNFT, signer: minter })
+                  console.log("minter", minter.address)
+                  let sendEther = ethers.utils.parseEther("0.2")
+                  let minPrice = ethers.utils.parseEther("0.1")
+                  let maxPrice = ethers.utils.parseEther("0.5")
+
+                  const voucher = await ptMinter.createVoucher(
+                      1,
+                      "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC",
+                      maxPrice,
+                      minPrice
+                  )
+                  console.log("voucher", redeemer.address)
                   await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
                       value: sendEther,
                   })
-                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(minter)
 
-                  var txResponse = await PTNFTMarketPlace.acceptLazzNFTOffer(voucher)
-
-                  var txReceipt = await txResponse.wait(1) // waits 1 block
-                  var offer = await PTNFTMarketPlace.getOffer(1)
-                  console.log("offer", offer.status)
-                  assert.equal(offer.status.toString(), "1")
+                  await expect(PTNFTMarketPlace.withDrawFromOffer(1)).to.emit(
+                      PTNFTMarketPlace,
+                      "WithDrawFund"
+                  ) // transfer from null address to minter
               })
           })
-          //   it("Should fail to redeem an NFT that's already been claimed", async function () {
-          //       const ptMinter = new PTMinter({ ptNFT, signer: minter })
 
-          //       const voucher = await ptMinter.createVoucher(
-          //           1,
-          //           "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC"
-          //       )
+          describe("PTNFTMarketPlace refundOfferAmount  ", function () {
+              it("check refundOfferAmount fail when try to get amount without place any offer", async function () {
+                  await expect(PTNFTMarketPlace.refundOfferAmount()).to.be.revertedWith(
+                      "PTNFTMarketPlace__NoRefundAmountFound"
+                  )
+              })
+              it("check refundOfferAmount amount when someone offer more then your amount", async function () {
+                  const ptMinter = new PTMinter({ ptNFT, signer: minter })
+                  console.log("minter", minter.address)
+                  let sendEther = ethers.utils.parseEther("0.3")
+                  let minPrice = ethers.utils.parseEther("0.1")
+                  let maxPrice = ethers.utils.parseEther("0.5")
 
-          // await expect(ptNFT.redeem(redeemer.address, voucher))
-          //     .to.emit(ptNFT, "Transfer") // transfer from null address to minter
-          //     .withArgs(
-          //         "0x0000000000000000000000000000000000000000",
-          //         minter.address,
-          //         voucher.tokenId
-          //     )
-          //     .and.to.emit(ptNFT, "Transfer") // transfer from minter to redeemer
-          //     .withArgs(minter.address, redeemer.address, voucher.tokenId)
-          //       await expect(ptNFT.redeem(redeemer.address, voucher)).to.be.revertedWith(
-          //           "ERC721: token already minted"
-          //       )
-          //   })
+                  const voucher = await ptMinter.createVoucher(
+                      1,
+                      "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC",
+                      maxPrice,
+                      minPrice
+                  )
+                  console.log("voucher", voucher.minPrice.toString(), sendEther.toString())
+                  const startingBalance = await PTNFTMarketPlace.provider.getBalance(minter.address)
 
-          //   it("Should fail to redeem an NFT voucher that's been modified", async function () {
-          //       const ptMinter = new PTMinter({ ptNFT, signer: minter })
+                  let txResponse = await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
+                      value: sendEther,
+                  }) // emit RefundOfferAmount
+                  var txReceipt = await txResponse.wait(1) // waits 1 block
+                  var { gasUsed, effectiveGasPrice } = txReceipt
+                  let withdrawGasCostCreateOfferFoRLazzNFT = gasUsed.mul(effectiveGasPrice)
 
-          //       const voucher = await ptMinter.createVoucher(
-          //           1,
-          //           "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC"
-          //       )
+                  //   var blocktime = await PTNFTMarketPlace.getBlockTime()
+                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(redeemer)
+                  var res = await PTNFTMarketPlace.getOffer(1)
+                  console.log("res", res.offerBy.toString(), res.offerAmount.toString())
+                  sendEther = ethers.utils.parseEther("0.45")
+                  txResponse = await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
+                      value: sendEther,
+                  })
+                  await txResponse.wait(1) // waits 1 block
 
-          //       voucher.tokenId = 2
-          //       await expect(ptNFT.redeem(redeemer.address, voucher)).to.be.revertedWith(
-          //           "Signature invalid or unauthorized"
-          //       )
-          //   })
+                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(minter)
+                  var txResponse1 = await PTNFTMarketPlace.refundOfferAmount()
+                  var txReceipt1 = await txResponse1.wait(1) // waits 1 block
+                  var gasUsed1 = txReceipt1.gasUsed
+                  var effectiveGasPrice1 = txReceipt1.effectiveGasPrice
+                  let withdrawGasCostwithDrawFromOffer = gasUsed1.mul(effectiveGasPrice1)
 
-          //   it("Should transfer check balance", async function () {
-          //       const ptMinter = new PTMinter({ ptNFT, signer: minter })
+                  var endingBalance = await PTNFTMarketPlace.provider.getBalance(minter.address)
+                  endingBalance = endingBalance
+                      .add(withdrawGasCostwithDrawFromOffer)
+                      .add(withdrawGasCostCreateOfferFoRLazzNFT)
+                  console.log("endingBalance", endingBalance.toString())
+                  console.log("startingBalance", startingBalance.toString())
+                  assert.equal(endingBalance.toString(), startingBalance.toString())
+              })
 
-          //       let voucher = await ptMinter.createVoucher(
-          //           1,
-          //           "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC"
-          //       )
-          //       console.log("check balance=>", voucher)
-          //       await ptNFT.redeem(redeemer.address, voucher)
-          //       voucher = await ptMinter.createVoucher(
-          //           2,
-          //           "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC"
-          //       )
-          //       await ptNFT.redeem(redeemer.address, voucher)
-          //       var res = await ptNFT.balanceOf(redeemer.address)
-          //       console.log(" balance ", res.toString())
-          //       assert.equal(res.toString(), 2)
-          //   })
+              it("check refundOfferAmount event ", async function () {
+                  const ptMinter = new PTMinter({ ptNFT, signer: minter })
+                  console.log("minter", minter.address)
+                  let sendEther = ethers.utils.parseEther("0.3")
+                  let minPrice = ethers.utils.parseEther("0.1")
+                  let maxPrice = ethers.utils.parseEther("0.5")
+
+                  const voucher = await ptMinter.createVoucher(
+                      1,
+                      "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC",
+                      maxPrice,
+                      minPrice
+                  )
+                  console.log("voucher", voucher.minPrice.toString(), sendEther.toString())
+
+                  let txResponse = await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
+                      value: sendEther,
+                  }) // emit RefundOfferAmount
+                  await txResponse.wait(1) // waits 1 block
+
+                  //   var blocktime = await PTNFTMarketPlace.getBlockTime()
+                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(redeemer)
+                  var res = await PTNFTMarketPlace.getOffer(1)
+                  console.log("res", res.offerBy.toString(), res.offerAmount.toString())
+                  sendEther = ethers.utils.parseEther("0.45")
+                  txResponse = await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
+                      value: sendEther,
+                  })
+                  await txResponse.wait(1) // waits 1 block
+
+                  PTNFTMarketPlace = PTNFTMarketPlaceContract.connect(minter)
+
+                  await expect(PTNFTMarketPlace.refundOfferAmount()).to.emit(
+                      PTNFTMarketPlace,
+                      "RedundOfferAmount"
+                  ) // transfer from null address to minter
+              })
+          })
       })

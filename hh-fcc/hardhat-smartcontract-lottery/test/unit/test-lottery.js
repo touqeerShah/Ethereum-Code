@@ -182,6 +182,7 @@ const { developmentChains } = require("../../helper.config")
                               //   assert(endingTimeStamp > startingTimeStamp)
                               resolve() // if try passes, resolves the promise
                           } catch (e) {
+                              console.log("here Error")
                               reject(e) // if try fails, rejects the promise
                           }
                       })
