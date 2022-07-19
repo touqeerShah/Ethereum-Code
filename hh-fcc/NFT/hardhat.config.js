@@ -29,6 +29,7 @@ module.exports = {
         localhost: {
             url: PROVIDER_hardhate_URL,
             chainId: 31337,
+            allowUnlimitedContractSize: true,
             // accounts: [`${PRIVATE_KEY_HARDHAT}`], // it will import default by hardhat
         },
     },

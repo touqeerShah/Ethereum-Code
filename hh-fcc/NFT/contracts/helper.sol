@@ -25,6 +25,8 @@ error PTNFTMarketPlace__FailToRefundAmountFound();
 error PTNFTMarketPlace__MinPriceGreaterThenZeroWei();
 error PTNFTMarketPlace__PermissionRequired();
 error PTNFTMarketPlace__MarketItemExpired();
+error PTNFTMarketPlace__OfferTimeExpired();
+
 error PTNFTMarketPlace__FixedPirceMarketItem();
 
 struct NFTVoucher {

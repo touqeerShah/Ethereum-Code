@@ -51,13 +51,13 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl {
     }
 
     constructor(
-        // address marketPlace,
+        address marketPlace,
         string memory name,
         string memory symbol,
         string memory signingDomain,
         string memory signatureVersion
     ) ERC721(name, symbol) EIP712(signingDomain, signatureVersion) {
-        // _setupRole(MINTER_ROLE, marketPlace);// this for ristricty only audit contract will call this
+        _setupRole(MINTER_ROLE, marketPlace); // this for ristricty only audit contract will call this
     }
 
     /// @notice Redeems an NFTVoucher for an actual NFT, creating it in the process.
@@ -66,7 +66,7 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl {
     function redeem(
         address redeemer,
         NFTVoucher calldata voucher /*onlyMarketPlace*/
-    ) public payable returns (uint256) {
+    ) public payable onlyMarketPlace returns (uint256) {
         // make sure signature is valid and get the address of the signer
         address signer = _verify(voucher);
 
@@ -112,7 +112,7 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl {
     /// @notice Verifies the signature for a given NFTVoucher, returning the address of the signer.
     /// @dev Will revert if the signature is invalid. Does not verify that the signer is authorized to mint NFTs.
     /// @param voucher An NFTVoucher describing an unminted NFT.
-    function _verify(NFTVoucher calldata voucher) public view returns (address) {
+    function _verify(NFTVoucher calldata voucher) public view onlyMarketPlace returns (address) {
         bytes32 digest = _hash(voucher);
         return ECDSA.recover(digest, voucher.signature);
     }
