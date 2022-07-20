@@ -1166,7 +1166,6 @@ const { developmentChains } = require("../../helper.config")
                       "PTNFTMarketPlace__ItemIdInvalid"
                   )
               })
-
               it("check rejectOffer fail on market item is close", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
                   console.log("minter", minter.address)
@@ -1259,7 +1258,6 @@ const { developmentChains } = require("../../helper.config")
                       })
                   ).to.be.revertedWith("PTNFTMarketPlace__OnlyOwnerAcceptOffer")
               })
-
               it("check rejectOffer fail on offer expired", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
                   console.log("minter", minter.address)

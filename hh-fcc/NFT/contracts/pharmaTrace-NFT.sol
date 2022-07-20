@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // 1. Pragma
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.8;
 
 // 2. Imports
 import "hardhat/console.sol";
@@ -66,7 +66,10 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
     function redeem(
         address redeemer,
         NFTVoucher calldata voucher /*onlyMarketPlace*/
-    ) public payable onlyMarketPlace returns (uint256) {
+    )
+        external
+        onlyMarketPlace /*returns (uint256)*/
+    {
         // make sure signature is valid and get the address of the signer
         address signer = _verify(voucher);
 
@@ -76,7 +79,7 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
 
         // transfer the token to the redeemer
         _safeTransfer(signer, redeemer, voucher.tokenId, "");
-        return voucher.tokenId;
+        // return voucher.tokenId;
     }
 
     /// @notice Returns a hash of the given NFTVoucher, prepared using EIP712 typed data hashing rules.

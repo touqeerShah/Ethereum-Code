@@ -41,3 +41,31 @@ it is tool help as to anaylsis the code for potential errors
 yarn add solhint
 yarn solhint init
 yarn solhint folderpath/\*.sol
+
+# Audit Code
+
+https://github.com/PatrickAlphaC/hardhat-security-fcc
+https://secureum.substack.com/p/audit-techniques-and-tools-101
+
+tools
+slither for contract check vernabilities
+https://github.com/crytic/slither
+
+if we used different version
+pip3 install solc-select
+solc-select use version
+
+add this in package.json
+"scripts": {
+"slither": "slither . --solc-remaps '@openzeppelin=node*modules/@openzeppelin @chainlink=node_modules/@chainlink' --exclude naming-convention,external-function,low-level-calls",
+"test": "hardhat test",
+"test:staging": "hardhat test --network rinkeby",
+"lint": "solhint 'contracts/*.sol'",
+"lint:fix": "solhint 'contracts/\*\*/\_.sol' --fix",
+"format": "prettier --write .",
+"coverage": "hardhat coverage"
+}
+
+Trail of bits
+it package of all tools which helps as to audit the code
+https://github.com/trailofbits/eth-security-toolbox
