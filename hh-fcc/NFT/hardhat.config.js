@@ -30,6 +30,8 @@ module.exports = {
             url: PROVIDER_hardhate_URL,
             chainId: 31337,
             allowUnlimitedContractSize: true,
+            blockGasLimit: 10000000042972011111, // whatever you want here
+
             // accounts: [`${PRIVATE_KEY_HARDHAT}`], // it will import default by hardhat
         },
     },

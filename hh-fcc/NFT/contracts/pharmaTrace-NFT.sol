@@ -25,22 +25,6 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
     // State variables
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    // /// @notice Represents an un-minted NFT, which has not yet been recorded into the blockchain. A signed voucher can be redeemed for a real NFT using the redeem function.
-    // struct NFTVoucher {
-    //     /// @notice The id of the token to be redeemed. Must be unique - if another token with this ID already exists, the redeem function will revert.
-    //     uint256 tokenId;
-    //     /// @notice The minimum price (in wei) that the NFT creator is willing to accept for the initial sale of this NFT.
-    //     uint256 minPrice;
-    //     /// @notice The maxmum price (in wei) that the NFT creator is willing to accept for the buy this NFT.
-    //     uint256 maxPrice;
-    //     /// @notice The metadata URI to associate with this token.
-    //     string uri;
-    //     /// @notice the EIP-712 signature of all other fields in the NFTVoucher struct. For a voucher to be valid, it must be signed by an account with the MINTER_ROLE.
-    //     bytes signature;
-    // }
-
-    // Events (we have none!)
-
     // Modifiers
     modifier onlyMarketPlace() {
         // require(msg.sender == i_owner);
@@ -49,6 +33,8 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
         if (!hasRole(MINTER_ROLE, msg.sender)) revert PTNFT__ONLYMARKETPLACE();
         _;
     }
+    // Events Lazz NFT
+    event RedeemVoucher(address indexed signer, uint256 indexed tokenId, address indexed redeemer);
 
     constructor(
         address marketPlace,
@@ -79,6 +65,7 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
 
         // transfer the token to the redeemer
         _safeTransfer(signer, redeemer, voucher.tokenId, "");
+        emit RedeemVoucher(signer, voucher.tokenId, redeemer);
         // return voucher.tokenId;
     }
 

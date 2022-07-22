@@ -27,7 +27,7 @@ error PTNFTMarketPlace__FailToTransferListingFee();
 error PTNFTMarketPlace__FailToTransferNFTOfferAmount();
 error PTNFTMarketPlace__NoRefundAmountFound();
 error PTNFTMarketPlace__FailToRefundAmountFound();
-error PTNFTMarketPlace__MinPriceGreaterThenZeroWei();
+error PTNFTMarketPlace__ZeroExpiredNoOfDaysAndMinPrice();
 error PTNFTMarketPlace__PermissionRequired();
 error PTNFTMarketPlace__MarketItemExpired();
 error PTNFTMarketPlace__OfferTimeExpired();
