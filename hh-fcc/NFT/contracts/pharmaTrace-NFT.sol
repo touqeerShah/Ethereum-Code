@@ -114,6 +114,7 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
     /// @notice used to revert the approved on delete.
 
     function revertApprovalForAll(address operator, uint256 tokenId) public nonReentrant {
+        if (!_isApprovedOrOwner(msg.sender, tokenId)) revert PTNFT__NotOwner();
         _approve(operator, tokenId);
     }
 
