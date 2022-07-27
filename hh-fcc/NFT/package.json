@@ -23,6 +23,8 @@
     },
     "scripts": {
         "slither": "slither . --solc-remaps '@openzeppelin=node_modules/@openzeppelin @chainlink=node_modules/@chainlink' --exclude naming-convention,external-function,low-level-calls",
+        "toolbox": "docker run -it --rm -v $PWD:/src trailofbits/eth-security-toolbox",
+        "myth": "docker run -it --rm -v $PWD:/src mythril/myth",
         "test": "hardhat test",
         "test:staging": "hardhat test --network rinkeby",
         "lint": "solhint 'contracts/_.sol'",

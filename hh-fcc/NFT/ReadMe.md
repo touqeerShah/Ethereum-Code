@@ -69,3 +69,23 @@ add this in package.json
 Trail of bits
 it package of all tools which helps as to audit the code
 https://github.com/trailofbits/eth-security-toolbox
+
+we will do fuzzing testing with echidna
+test are written in fuzzing folder and also add the below code in package.json
+"toolbox": "docker run -it --rm -v $PWD:/src trailofbits/eth-security-toolbox",
+
+https://github.com/crytic/echidna
+
+following command will
+echidna-test . --contract PTNFTMarketPlaceTest --config /src/contracts/test/fuzzing/config.yaml
+
+"myth": "docker run -it --rm -v $PWD:/src mythril/myth"
+docker run -v $(pwd):/tmp mythril/myth analyze /tmp/contracts/helper.sol
+docker run -v $(pwd):/tmp mythril/myth analyze -a 0x2dBF2B2c25C165610F5b34dA41dC000D5d307509 --infura-id eb19eeafefff4d9eb07ed30adcad89a1
+docker run -v $(pwd)/mythril-docs:/docs mythril/myth -v4 analyze -a 0xf5B8a369D060AE5bEd6328D3d32760e029f8A151 --rpc infura-rinkeby --infura-id eb19eeafefff4d9eb07ed30adcad89a1 --execution-timeout 12000
+docker run -v $(pwd)/mythril-docs-PTNFT:/docs mythril/myth -v4 analyze -a 0xf804b136e7c6acAFB663Df29A44D0df5ECD288A6 --rpc infura-rinkeby --infura-id eb19eeafefff4d9eb07ed30adcad89a1 --execution-timeout 120
+
+<!-- PTNFTMarketPlace 0xf5B8a369D060AE5bEd6328D3d32760e029f8A151 -->
+<!-- PTNFT 0xf804b136e7c6acAFB663Df29A44D0df5ECD288A6 -->
+
+manticore . --contract PTNFTMarketPlace --txlimit 1 --smt.solver all --quick-mode --lazy-evaluation --core.procs 1

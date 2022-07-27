@@ -40,6 +40,10 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId, network }) 
     var reseipt = await transationResponse.wait(1)
     transationResponse = await PTNFTMarketPlace.getNftContractAddress()
 
+    log("Logging storage...")
+    for (let i = 0; i < 11; i++) {
+        log(`Location ${i}: ${await ethers.provider.getStorageAt(PTNFTMarketPlace.address, i)}`)
+    }
     log(`You've made an NFT `, JSON.stringify(transationResponse))
     if (!developmentChains.includes(network.name) && process.env.ETHERSCANAPIKEY) {
         await verify(ptNFT.address, [
