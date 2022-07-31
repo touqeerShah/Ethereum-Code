@@ -1112,7 +1112,7 @@ const { developmentChains } = require("../../helper.config")
                       PTNFTMarketPlace.buy(1, ptNFT.address, {
                           value: sendEther,
                       })
-                  ).to.emit(PTNFTMarketPlace, "BuyMarketPlaceItem") // transfer from null address to minter
+                  ).to.emit(PTNFTMarketPlace, "BuyNFT") // transfer from null address to minter
 
                   //   var res = await ptNFT.balanceOf(redeemer.address)
                   //   var resURI = await ptNFT.tokenURI(1)

@@ -341,7 +341,7 @@ const { developmentChains } = require("../../helper.config")
                       PTNFTMarketPlace.buyLazzNFT(voucher, {
                           value: sendEther,
                       })
-                  ).to.emit(PTNFTMarketPlace, "BuyLazzNFT") // transfer from null address to minter
+                  ).to.emit(PTNFTMarketPlace, "BuyNFT") // transfer from null address to minter
 
                   //   var res = await ptNFT.balanceOf(redeemer.address)
                   //   var resURI = await ptNFT.tokenURI(1)

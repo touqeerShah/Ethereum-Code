@@ -80,12 +80,12 @@ following command will
 echidna-test . --contract PTNFTMarketPlaceTest --config /src/contracts/test/fuzzing/config.yaml
 
 "myth": "docker run -it --rm -v $PWD:/src mythril/myth"
-docker run -v $(pwd):/tmp mythril/myth analyze /tmp/contracts/helper.sol
+docker run -v $(pwd):/tmp mythril/myth -l analyze /tmp/contracts/marketplace.sol
 docker run -v $(pwd):/tmp mythril/myth analyze -a 0x2dBF2B2c25C165610F5b34dA41dC000D5d307509 --infura-id eb19eeafefff4d9eb07ed30adcad89a1
-docker run -v $(pwd)/mythril-docs:/docs mythril/myth -v4 analyze -a 0xf5B8a369D060AE5bEd6328D3d32760e029f8A151 --rpc infura-rinkeby --infura-id eb19eeafefff4d9eb07ed30adcad89a1 --execution-timeout 12000
-docker run -v $(pwd)/mythril-docs-PTNFT:/docs mythril/myth -v4 analyze -a 0xf804b136e7c6acAFB663Df29A44D0df5ECD288A6 --rpc infura-rinkeby --infura-id eb19eeafefff4d9eb07ed30adcad89a1 --execution-timeout 120
+docker run -v $(pwd)/mythril-docs:/docs mythril/myth -v4 analyze -a 0x4CA40B854fe9021670f1094985E782ED97FEd365 --rpc infura-rinkeby --infura-id eb19eeafefff4d9eb07ed30adcad89a1 --execution-timeout 12000
+docker run -v $(pwd)/mythril-docs-PTNFT:/docs mythril/myth -v4 analyze -a 0x12d0113fC6702d2247F5250e616966D94d0D75d3 --rpc infura-rinkeby --infura-id eb19eeafefff4d9eb07ed30adcad89a1 --execution-timeout 120
 
-<!-- PTNFTMarketPlace 0xf5B8a369D060AE5bEd6328D3d32760e029f8A151 -->
-<!-- PTNFT 0xf804b136e7c6acAFB663Df29A44D0df5ECD288A6 -->
+<!-- PTNFTMarketPlace 0x4CA40B854fe9021670f1094985E782ED97FEd365 -->
+<!-- PTNFT 0x12d0113fC6702d2247F5250e616966D94d0D75d3 -->
 
 manticore . --contract PTNFTMarketPlace --txlimit 1 --smt.solver all --quick-mode --lazy-evaluation --core.procs 1

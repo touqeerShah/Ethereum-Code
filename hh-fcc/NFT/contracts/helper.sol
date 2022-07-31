@@ -10,11 +10,7 @@ enum OfferState {
     OPEN,
     CLOSE
 }
-enum FetchOperator {
-    ActiveItems,
-    MyPurchasedItems,
-    MyCreatedItems
-}
+
 // 3. Interfaces, Libraries, Contracts
 error PTNFTMarketPlace__NotOwner();
 error PTNFTMarketPlace__InsufficientFund();
