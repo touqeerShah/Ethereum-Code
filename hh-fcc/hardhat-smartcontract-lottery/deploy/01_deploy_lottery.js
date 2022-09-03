@@ -39,29 +39,54 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId, network }) 
     var callbackGasLimit = networkConfig[chainId].callbackGasLimit
     var interval = networkConfig[chainId].interval
     console.log("entrnaceFee ====>", entrnaceFee.toString())
-    const lottery = await deploy("Lottery", {
+    // const lottery = await deploy("Lottery", {
+    //     from: deployer,
+    //     args: [
+    //         vrfCoordinatorV2MockAddress,
+    //         entrnaceFee,
+    //         subscriptionId,
+    //         KeyHash,
+    //         callbackGasLimit,
+    //         interval,
+    //     ],
+    //     log: true,
+    //     waitConfirmations: network.config.blockConfirmations || 1,
+    // })
+    // log(`lottery contract is deployed on local network to ${lottery.address} ${chainId}`)
+
+    // if (!developmentChains.includes(network.name) && process.env.ETHERSCANAPIKEY) {
+    //     await verify(lottery.address, [
+    //         vrfCoordinatorV2MockAddress,
+    //         entrnaceFee,
+    //         subscriptionId,
+    //         KeyHash,
+    //         callbackGasLimit,
+    //         interval,
+    //     ])
+    // }
+    const roffle = await deploy("Raffle", {
         from: deployer,
         args: [
             vrfCoordinatorV2MockAddress,
-            entrnaceFee,
             subscriptionId,
             KeyHash,
-            callbackGasLimit,
             interval,
+            entrnaceFee,
+            callbackGasLimit,
         ],
         log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
-    log(`lottery contract is deployed on local network to ${lottery.address} ${chainId}`)
+    log(`roffle contract is deployed on local network to ${roffle.address} ${chainId}`)
 
     if (!developmentChains.includes(network.name) && process.env.ETHERSCANAPIKEY) {
-        await verify(lottery.address, [
+        await verify(roffle.address, [
             vrfCoordinatorV2MockAddress,
-            entrnaceFee,
             subscriptionId,
             KeyHash,
-            callbackGasLimit,
             interval,
+            entrnaceFee,
+            callbackGasLimit,
         ])
     }
 }

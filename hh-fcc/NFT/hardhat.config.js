@@ -36,12 +36,32 @@ module.exports = {
         },
     },
     solidity: {
-        compilers: [
-            {
-                version: "0.8.9",
+        version: "0.8.9",
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200,
             },
-        ],
+        },
     },
+    // solidity: {
+    //     compilers: [
+    //         {
+    //             version: "0.8.9",
+    //         },
+    //     ],
+    //     settings: {
+    //         optimizer: {
+    //             enabled: true,
+    //             runs: 200,
+    //         },
+    //     },
+    //     contractSizer: {
+    //         alphaSort: true,
+    //         runOnCompile: true,
+    //         disambiguatePaths: false,
+    //     },
+    // },
     namedAccounts: {
         deployer: {
             default: 0,
