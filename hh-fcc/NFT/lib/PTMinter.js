@@ -10,7 +10,6 @@ const SIGNING_DOMAIN_VERSION = "1"
  * @typedef {object} NFTVoucher
  * @property {ethers.BigNumber | number} tokenId the id of the un-minted NFT
  * @property {ethers.BigNumber | number} minPrice the minimum price (in wei) that the creator will accept to redeem this NFT
- * @property {ethers.BigNumber | number} maxPrice the minimum price (in wei) that the creator will accept to redeem this NFT
  * @property {string} uri the metadata URI to associate with this NFT
  * @property {ethers.BytesLike} signature an EIP-712 signature of all fields in the NFTVoucher, apart from signature itself.
  */
@@ -37,17 +36,15 @@ class PTMinter {
      * @param {ethers.BigNumber | number} tokenId the id of the un-minted NFT
      * @param {string} uri the metadata URI to associate with this NFT
      * @param {ethers.BigNumber | number} minPrice the minimum price (in wei) that the creator will accept to redeem this NFT. defaults to zero
-     * @param {ethers.BigNumber | number} maxPrice the minimum price (in wei) that the creator will accept to redeem this NFT. defaults to zero
      * @returns {NFTVoucher}
      */
-    async createVoucher(tokenId, uri, maxPrice = 2, minPrice = 0) {
-        const voucher = { tokenId, uri, minPrice, maxPrice }
+    async createVoucher(tokenId, uri, minPrice = 0) {
+        const voucher = { tokenId, uri, minPrice }
         const domain = await this._signingDomain()
         const types = {
             NFTVoucher: [
                 { name: "tokenId", type: "uint256" },
                 { name: "minPrice", type: "uint256" },
-                { name: "maxPrice", type: "uint256" },
                 { name: "uri", type: "string" },
             ],
         }
