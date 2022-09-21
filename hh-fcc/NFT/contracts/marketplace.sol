@@ -9,13 +9,14 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./pharmaTrace-NFT.sol";
 import "./helper.sol";
+import "./marketplace-interface.sol";
 
 /**@title A Pharmatrace  NFT MarketPlace contract
  * @author Touqeer Shah
  * @notice This contract is for creating a Lazy NFT
  * @dev Create MarketPlace for PhramaTrace
  */
-contract PTNFTMarketPlace is ReentrancyGuard {
+contract PTNFTMarketPlace is ReentrancyGuard, Marketplace_Interface {
     // Type Declarations
     using Counters for Counters.Counter;
 
@@ -32,7 +33,7 @@ contract PTNFTMarketPlace is ReentrancyGuard {
     mapping(address => uint256) private s_amounts;
     mapping(address => mapping(uint256 => MarketItem)) public s_marketItems;
 
-    // Modifiers
+    // // Modifiers
     modifier onlyMarketplaceOwner() {
         // require(msg.sender == i_owner);
         if (msg.sender != i_marketowner) revert PTNFTMarketPlace__NotOwner();
@@ -53,77 +54,6 @@ contract PTNFTMarketPlace is ReentrancyGuard {
         }
         _;
     }
-
-    // Events Lazz NFT
-    event ReceivedCalled(address indexed buyer, uint256 indexed amount);
-    event FallbackCalled(address indexed buyer, uint256 indexed amount);
-    event CreateOffer(
-        uint256 indexed tokenId,
-        address indexed contractAddress,
-        uint256 offerAmount,
-        uint256 totalOffers,
-        uint256 startAt,
-        uint256 expiresAt,
-        address payable indexed offerBy,
-        OfferState status
-    );
-    event AcceptOffer(
-        uint256 indexed tokenId,
-        address owner,
-        address indexed contractAddress,
-        uint256 offerAmount,
-        address payable indexed offerBy,
-        OfferState status
-    );
-    event RejectOffer(
-        uint256 indexed tokenId,
-        address owner,
-        address indexed contractAddress,
-        uint256 offerAmount,
-        address payable indexed offerBy,
-        OfferState status
-    );
-    event WithDrawFromOffer(
-        uint256 indexed tokenId,
-        address indexed contractAddress,
-        uint256 offerAmount,
-        address payable indexed offerBy
-    );
-    event WithDrawAmount(address indexed offerBy, uint256 indexed amount);
-    event WithDrawRefundAmount(
-        uint256 indexed tokenId,
-        address indexed contractAddress,
-        address indexed offerBy,
-        uint256 amount
-    );
-    event BuyNFT(
-        uint256 indexed tokenId,
-        address owner,
-        address indexed contractAddress,
-        uint256 offerAmount,
-        address payable indexed offerBy
-    );
-
-    // Event MarketPlace
-    event MarketItemCreated(
-        uint256 indexed tokenId,
-        address indexed contractAddress,
-        address indexed seller,
-        address buyer,
-        uint256 minPrice,
-        bool isFixedPrice,
-        uint256 startAt,
-        uint256 expiresAt,
-        State state
-    );
-    event MarketItemDelete(
-        uint256 indexed tokenId,
-        address indexed contractAddress,
-        address indexed seller,
-        State state
-    );
-    event TotalNumberOfOfferOnMarketPlace(uint256 indexed totalOfferOnMarketPlace);
-    event TotalNumberOfItemMarketPlace(uint256 indexed itemSoldCounter);
 
     //// constructor
     constructor() {

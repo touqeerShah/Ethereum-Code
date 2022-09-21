@@ -1,3 +1,5 @@
+# Lazzing Minting NFT and Marketplace
+
 step 1 create folder
 step 2 install hardhat
 step 3 create empty project
