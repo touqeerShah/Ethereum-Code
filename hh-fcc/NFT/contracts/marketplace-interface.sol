@@ -18,6 +18,8 @@ interface Marketplace_Interface {
     error PTNFTMarketPlace__MarketItemExpired();
     error PTNFTMarketPlace__OfferTimeExpired();
     error PTNFTMarketPlace__NoOfferExist();
+    error PTNFTMarketPlace__AllowedCryptoNotExist();
+    error PTNFTMarketPlace__InsufficientApprovalFund();
 
     error PTNFTMarketPlace__FixedPirceMarketItem();
     // error PTNFTMarketPlace__ListingFeeNotZero();

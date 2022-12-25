@@ -36,25 +36,31 @@ const { developmentChains } = require("../../helper.config")
           })
           describe("PTNFTMarketPlace createOfferFoRLazzNFT ", function () {
               it("check createOfferFoRLazzNFT fail if insufficent fund transfer", async function () {
+                  console.log("minter", minter)
+
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })
                   console.log("minter", minter.address)
                   let sendEther = ethers.utils.parseEther("0.01")
 
                   let minPrice = ethers.utils.parseEther("0.1")
-
+                  console.log("minPrice", minPrice.toString())
                   let voucher = await ptMinter.createVoucher(
                       1,
                       "ipfs://QmQFcbsk1Vjt1n361MceM5iNeMTuFzuVUZ1hKFWD7ZCpuC",
-                      minPrice
+                      minter.address,
+                      minPrice,
+                      true
                   )
                   console.log("voucher", voucher)
+                  var res = await ptNFT.redeem(minter.address, voucher)
+                  console.log("res", res)
                   //   var res = await PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1)
                   //   console.log(res)
-                  await expect(
-                      PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
-                          value: sendEther,
-                      })
-                  ).to.be.revertedWith("PTNFTMarketPlace__InsufficientFund")
+                  //   await expect(
+                  //       PTNFTMarketPlace.createOfferFoRLazzNFT(voucher, 1, {
+                  //           value: sendEther,
+                  //       })
+                  //   ).to.be.revertedWith("PTNFTMarketPlace__InsufficientFund")
               })
               it("check createOfferFoRLazzNFT with minPrice", async function () {
                   const ptMinter = new PTMinter({ ptNFT, signer: minter })

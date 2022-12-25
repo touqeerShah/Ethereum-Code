@@ -1,8 +1,6 @@
 const { getNamedAccounts, ethers } = require("hardhat")
-
+let sendEther = ethers.utils.parseEther("0.01")
 async function getWeth() {
-    let sendEther = ethers.utils.parseEther("0.01")
-
     // first we need account to intract
     const { deployer } = await getNamedAccounts()
     //to intract with WETH contract we need ABI and contract address
@@ -17,4 +15,4 @@ async function getWeth() {
     var balance = await iweth.balanceOf(deployer)
     console.log("balance", balance.toString())
 }
-module.exports = { getWeth }
+module.exports = { getWeth, sendEther }

@@ -61,7 +61,7 @@ add this in package.json
 "scripts": {
 "slither": "slither . --solc-remaps '@openzeppelin=node*modules/@openzeppelin @chainlink=node_modules/@chainlink' --exclude naming-convention,external-function,low-level-calls",
 "test": "hardhat test",
-"test:staging": "hardhat test --network rinkeby",
+"test:staging": "hardhat test --network goerli",
 "lint": "solhint 'contracts/*.sol'",
 "lint:fix": "solhint 'contracts/\*\*/\_.sol' --fix",
 "format": "prettier --write .",

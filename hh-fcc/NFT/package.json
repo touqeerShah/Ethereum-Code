@@ -26,7 +26,7 @@
         "toolbox": "docker run -it --rm -v $PWD:/src trailofbits/eth-security-toolbox",
         "myth": "docker run -it --rm -v $PWD:/src mythril/myth",
         "test": "hardhat test",
-        "test:staging": "hardhat test --network rinkeby",
+        "test:staging": "hardhat test --network goerli",
         "lint": "solhint 'contracts/_.sol'",
         "lint:fix": "solhint 'contracts/**/_.sol' --fix",
         "format": "prettier --write .",

@@ -65,3 +65,49 @@ command to run and Test
 ```
 hh run scripts/aave.Borrow.js
 ```
+
+## tine to dposite
+
+to deposit we need to apporove the contract to used our token once you approve it time to deposite the the weth token
+
+To see what parameter are required
+
+```
+https://docs.aave.com/developers/v/2.0/the-core-protocol/lendingpool#deposit
+```
+
+## Borrow From AAVE
+
+Here we try to check how much we can borrow and what are liquidation...
+To get more details about borrowing money getUserAccountData helps us.
+
+```
+### liquidation
+https://docs.aave.com/developers/v/2.0/the-core-protocol/lendingpool#liquidationcall
+
+### getUserAccountData
+https://docs.aave.com/developers/v/2.0/the-core-protocol/lendingpool#getuseraccountdata
+
+```
+
+once you get data how much you can borrow it time but before that we need to Now the DAI price which we get from Oricale
+
+```
+https://docs.aave.com/developers/v/2.0/the-core-protocol/price-oracle
+```
+
+To get price you have to go Chainlink Ethereum Data Feed and get price address from there
+
+Final get to borrow
+
+```
+https://docs.aave.com/developers/v/2.0/the-core-protocol/lendingpool#borrow
+```
+
+get DAI token Address from mainnet
+
+## Final Rrpay the Borrow Ammount
+
+```
+https://docs.aave.com/developers/v/2.0/the-core-protocol/lendingpool#repay
+```

@@ -3,13 +3,15 @@
 pragma solidity ^0.8.8;
 
 // 2. Imports
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./helper.sol";
 // 3. Interfaces, Libraries, Contracts
@@ -21,7 +23,7 @@ error PTNFT__ONLYMARKETPLACE();
  * @notice This contract is for creating a Lazy NFT
  * @dev Create MarketPlace for PhramaTrace
  */
-contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
+contract PTNFT is ERC721URIStorage, EIP712, Pausable, Ownable, AccessControl, ReentrancyGuard {
     // State variables
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -51,21 +53,19 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
     /// @param voucher A signed NFTVoucher that describes the NFT to be redeemed.
     function redeem(
         address redeemer,
-        NFTVoucher calldata voucher /*onlyMarketPlace*/
-    )
-        external
-        onlyMarketPlace /*returns (uint256)*/
-    {
+        NFTVoucher calldata voucher /*onlyMarketPlace*/ /*returns (uint256)*/
+    ) public view returns (address) {
         // make sure signature is valid and get the address of the signer
-        address signer = _verify(voucher);
+        redeemer = _verify(voucher);
 
-        // first assign the token to the signer, to establish provenance on-chain
-        _safeMint(signer, voucher.tokenId);
-        _setTokenURI(voucher.tokenId, voucher.uri);
+        return redeemer;
+        // // first assign the token to the signer, to establish provenance on-chain
+        // _safeMint(signer, voucher.tokenId);
+        // _setTokenURI(voucher.tokenId, voucher.uri);
 
-        // transfer the token to the redeemer
-        _safeTransfer(signer, redeemer, voucher.tokenId, "");
-        emit RedeemVoucher(signer, voucher.tokenId, redeemer);
+        // // transfer the token to the redeemer
+        // _safeTransfer(signer, redeemer, voucher.tokenId, "");
+        // emit RedeemVoucher(signer, voucher.tokenId, redeemer);
         // return voucher.tokenId;
     }
 
@@ -76,10 +76,14 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
             _hashTypedDataV4(
                 keccak256(
                     abi.encode(
-                        keccak256("NFTVoucher(uint256 tokenId,uint256 minPrice,string uri)"),
+                        keccak256(
+                            "NFTVoucher(uint256 tokenId,string uri,address currency,uint256 minPrice,bool isFixedPrice)"
+                        ),
                         voucher.tokenId,
+                        keccak256(bytes(voucher.uri)),
+                        voucher.currency,
                         voucher.minPrice,
-                        keccak256(bytes(voucher.uri))
+                        voucher.isFixedPrice
                     )
                 )
             );
@@ -99,7 +103,7 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
     /// @notice Verifies the signature for a given NFTVoucher, returning the address of the signer.
     /// @dev Will revert if the signature is invalid. Does not verify that the signer is authorized to mint NFTs.
     /// @param voucher An NFTVoucher describing an unminted NFT.
-    function _verify(NFTVoucher calldata voucher) public view onlyMarketPlace returns (address) {
+    function _verify(NFTVoucher calldata voucher) public view returns (address) {
         bytes32 digest = _hash(voucher);
         return ECDSA.recover(digest, voucher.signature);
     }
@@ -137,4 +141,33 @@ contract PTNFT is ERC721URIStorage, EIP712, AccessControl, ReentrancyGuard {
         return
             ERC721.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
+
+    function pauseContract() public onlyOwner {
+        _pause();
+    }
+
+    function unpauseContract() public onlyOwner {
+        _unpause();
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override {
+        super._beforeTokenTransfer(from, to, tokenId);
+
+        require(!paused(), "ERC721Pausable: token transfer while paused");
+    }
+
+    // function _beforeConsecutiveTokenTransfer(
+    //     address from,
+    //     address to,
+    //     uint256 first,
+    //     uint96 size
+    // ) internal virtual override {
+    //     super._beforeConsecutiveTokenTransfer(from, to, first, size);
+
+    //     require(!paused(), "ERC721Pausable: token transfer while paused");
+    // }
 }
